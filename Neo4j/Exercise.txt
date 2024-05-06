@@ -1,0 +1,35 @@
+// queries.js
+
+// Truy vấn 1: Các phòng mà khóa học với số khóa học "1" diễn ra
+MATCH (c:Course {courseNr: "1"})-[:TAKESPLACEIN]->(r:Room)
+RETURN c.courseName AS course_name, r.roomName AS room_name
+
+// Truy vấn 2: Số giờ và các dự án mà sinh viên với số sinh viên "1" tham gia
+MATCH (s:Student {studentID: "1"})-[:WORKSON]->(p:Project)
+RETURN s.firstName AS student_name, p.projectName AS project_name, 
+       rel.hours AS hours_worked
+
+// Truy vấn 3: Các sinh viên và số giờ họ làm việc trên dự án với số dự án "24"
+MATCH (p:Project {projectNr: "24"})<-[:WORKSON]-(s:Student)
+RETURN p.projectName AS project_name, s.lastName AS student_last_name, 
+       rel.hours AS hours_worked
+
+// Truy vấn 4: Các sinh viên làm việc trên các dự án và số giờ họ làm việc
+MATCH (s:Student)-[:WORKSON]->(p:Project)
+RETURN s.lastName AS student_last_name, p.projectName AS project_name, 
+       rel.hours AS hours_worked
+ORDER BY s.lastName
+LIMIT 4
+
+// Truy vấn 5: Các sinh viên làm việc trên hơn hai dự án và số lượng dự án chính xác
+MATCH (s:Student)-[:WORKSON]->(p:Project)
+WITH s, COUNT(p) AS project_count
+WHERE project_count > 2
+RETURN s.lastName AS student_last_name, project_count
+ORDER BY project_count DESC
+
+// Truy vấn 6: Các sinh viên có cùng họ và làm việc trên cùng một dự án
+MATCH (s1:Student)-[:WORKSON]->(p:Project)<-[:WORKSON]-(s2:Student)
+WHERE s1.lastName = s2.lastName AND s1.studentID <> s2.studentID
+RETURN s1.firstName AS first_student, s2.firstName AS second_student, 
+       p.projectName AS shared_project
